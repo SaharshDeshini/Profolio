@@ -1,0 +1,165 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--ink-0);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* No visible scrollbar: a grey bar down the edge breaks the frame. The page
+     still scrolls normally, and the chapter index shows where you are. */
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--ink-0);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+img,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--accent-line);
+  color: var(--white);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * Scroll structure. The canvas is position: fixed and never resizes, so "pinning"
+ * the 3D view costs nothing: no GSAP pin, no pin-spacers, one real scroller.
+ * The root lets pointer events fall through to the canvas; only the column
+ * re-enables them.
+ */
+.scroll-root {
+  position: relative;
+  z-index: var(--z-content);
+  pointer-events: none;
+  transition: opacity 360ms var(--ease-out);
+}
+
+/*
+ * The page is inert while the arrival screen or a project is open. Fading it
+ * out keeps its text from ghosting through the overlay, and fading it back in
+ * makes the content arrive with the lifting veil instead of popping in.
+ */
+.scroll-root[inert] {
+  opacity: 0;
+}
+
+.act-one-runway {
+  height: calc(var(--runway) * 1svh);
+}
+
+.content-column {
+  position: relative;
+  margin-left: calc(var(--split) * 100%);
+  /* Overlap the end of the runway so the Intro rises in as the dock completes. */
+  margin-top: calc(var(--overlap) * -1svh);
+  /* Never sit under a notch or rounded corner on a landscape phone. */
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
+  pointer-events: auto;
+}
+
+/* Keep in step with SPLIT_MIN_WIDTH (1024) in src/layout.ts. */
+@media (max-width: 1023px) {
+  .content-column {
+    margin-left: 0;
+    /*
+     * No side band to dock into here, so the scene stays behind the text. Dim it,
+     * easing in from clear so the content arrives over the shot instead of
+     * cutting to black.
+     */
+    background: linear-gradient(to bottom, transparent 0, rgb(5 5 5 / 0.86) 45svh);
+  }
+}
+
+.debug-hud {
+  position: fixed;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-nav);
+  margin: 0;
+  font: 500 var(--step--1) / 1.5 var(--font-mono);
+  color: var(--accent);
+  white-space: pre;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

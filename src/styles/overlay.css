@@ -1,0 +1,280 @@
+/*
+ * Project overlay: a full-bleed case study over the live scene. A near-opaque
+ * ink wash (never a blur: the canvas repaints every frame), a sticky column of
+ * facts on the left, the story on the right. Reads like a printed monograph.
+ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgb(5 5 5 / 0.97);
+  animation: overlay-in 360ms var(--ease-out) both;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.case {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 82rem;
+  margin-inline: auto;
+  padding: 0 var(--gutter) var(--space-8);
+  outline: none;
+}
+
+/* Top bar: stays put while the story scrolls, on solid ink so text never runs under it unreadably. */
+.case__bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+  background: var(--ink-0);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.case__close {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--hairline-active);
+  border-radius: var(--radius-ui);
+  color: var(--text-2);
+  transition:
+    color var(--dur-hover) var(--ease-expo),
+    border-color var(--dur-hover) var(--ease-expo),
+    transform var(--dur-hover) var(--ease-expo);
+}
+
+.case__close:hover {
+  color: var(--text-1);
+  border-color: var(--text-3);
+}
+
+.case__close:active {
+  transform: scale(0.97);
+}
+
+.case__grid {
+  display: grid;
+  grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr);
+  gap: var(--space-8);
+  padding-top: var(--space-8);
+}
+
+/* Facts stay in view beside the story. */
+.case__meta {
+  position: sticky;
+  top: 5.5rem;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.case__meta dl {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+}
+
+.case__meta dt {
+  margin-bottom: var(--space-2);
+}
+
+.case__meta dd {
+  margin: 0;
+  color: var(--text-1);
+  font-size: var(--step--1);
+  line-height: var(--leading-snug);
+}
+
+.case__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--text-2);
+}
+
+.case__links {
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.case__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.case__title {
+  font-size: min(var(--step-display), 8.5vw);
+  font-weight: 500;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.case__hero {
+  margin: var(--space-3) 0;
+}
+
+.case__hero .project-thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-ui);
+}
+
+.case__summary {
+  font-size: var(--step-1);
+  line-height: var(--leading-snug);
+  color: var(--text-1);
+  max-width: 34rem;
+}
+
+.case-part {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+}
+
+.case-part .rule {
+  background: var(--hairline-active);
+}
+
+.case-part__heading {
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-display);
+}
+
+/* Keep reading: the neighbouring projects as large, quiet links. */
+.case__nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--space-9);
+  border-top: 1px solid var(--hairline);
+}
+
+.case__nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-3);
+  transition: background-color var(--dur-hover) var(--ease-expo);
+}
+
+.case__nav-link--next {
+  grid-column: 2;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.case__nav-title {
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-display);
+  transition: transform var(--dur-base) var(--ease-expo);
+}
+
+.case__nav-link:hover,
+.case__nav-link:focus-visible {
+  background: rgb(255 255 255 / 0.025);
+}
+
+.case__nav-link:hover .case__nav-title {
+  transform: translateX(-0.4rem);
+}
+
+.case__nav-link--next:hover .case__nav-title {
+  transform: translateX(0.4rem);
+}
+
+/* The story arrives in sequence: bar, facts, then each block of the story a beat after the last. */
+.case__bar,
+.case__meta,
+.case__main > * {
+  animation: case-in 800ms var(--ease-expo) both;
+  animation-delay: calc(var(--d, 0) * 70ms);
+}
+
+.case__meta {
+  --d: 1;
+}
+
+.case__main > :nth-child(1) {
+  --d: 2;
+}
+
+.case__main > :nth-child(2) {
+  --d: 3;
+}
+
+.case__main > :nth-child(3) {
+  --d: 4;
+}
+
+.case__main > :nth-child(n + 4) {
+  --d: 5;
+}
+
+@keyframes case-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+}
+
+/* One column: facts move above the story and stop being sticky. */
+@media (max-width: 900px) {
+  .case__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding-top: var(--space-6);
+  }
+
+  .case__meta {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-5) var(--space-7);
+  }
+
+  .case__meta dl {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-5) var(--space-7);
+  }
+
+  .case__links {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .case__nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case__nav-link--next {
+    grid-column: auto;
+  }
+}

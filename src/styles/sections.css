@@ -1,0 +1,662 @@
+/*
+ * Act 2 content: open editorial layouts on a hairline grid. No card fills;
+ * structure comes from whitespace, 1px rules and type. Glass survives only for
+ * things you press (see glass.css and overlay.css). Colour: cyan appears only
+ * on the active project, on hover and focus, never as decoration.
+ */
+
+.section {
+  max-width: 44rem;
+  padding-block: var(--section-gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+/*
+ * About: a cover page. The identity line as the heading, one paragraph, and
+ * where/what-next as a single quiet mono line, not a labelled spec sheet.
+ */
+.section--intro {
+  min-height: 100svh;
+  padding-block: var(--space-9);
+  justify-content: center;
+}
+
+.intro__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+/* Connect: a closing frame, wider than the editorial column so the email reads as a title, not a line of body text. */
+.section--connect {
+  max-width: none;
+  min-height: 90svh;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/*
+ * Where there is a side band, Connect breaks out of the right column to span
+ * the whole screen: the docked rig comes back to the centre for the closing
+ * frame (SECTION_DOCK_POSE.connect in three/dock.ts) and the copy sits centred
+ * beneath it. The negative margin is the band's width worked back from the
+ * column's own width, so it follows `--split`, the same number the 3D side uses.
+ */
+@media (min-width: 1024px) {
+  .section--connect {
+    margin-left: calc(-1 * var(--split) / (1 - var(--split)) * (100% + 2 * var(--gutter)));
+    min-height: 100svh;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    /* The upper part belongs to the model and the problem wall; the copy starts below the figure and never climbs into it. */
+    padding-top: 74svh;
+    padding-bottom: var(--space-7);
+    gap: var(--space-4);
+  }
+
+  .section--connect .chapter {
+    align-items: center;
+  }
+
+  .section--connect .section-title {
+    max-width: 22ch;
+  }
+
+  .section--connect .contact-row,
+  .section--connect .link-row {
+    justify-content: center;
+  }
+}
+
+/* Chapter opening */
+.chapter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.chapter__index {
+  color: var(--text-1);
+}
+
+.chapter__rule {
+  background: var(--hairline-active);
+}
+
+.section-title {
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: var(--tracking-display);
+  max-width: 16ch;
+}
+
+/* Intro */
+.display {
+  /* Capped by the column, not just the viewport, so a long name still fits beside the rig. */
+  font-size: min(var(--step-display), 7.5vw);
+  font-weight: 500;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+/* The identity line as the About heading: a sentence, not a one-word name, so it sits a size below the display step. */
+.intro__title {
+  font-size: min(var(--step-4), 5.2vw);
+  line-height: 1.04;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+.lede {
+  font-size: var(--step-2);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  max-width: 24ch;
+}
+
+.body-copy {
+  color: var(--text-2);
+  max-width: var(--measure);
+}
+
+.intro__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--hairline);
+  max-width: var(--measure);
+}
+
+.project-list {
+  border-top: 1px solid var(--hairline);
+}
+
+/*
+ * Skills: a scroll-lit list. Each group title sits large and dim; the one
+ * crossing the middle of the screen lights up and its skills fade in under it,
+ * the same "what's at the centre is what's active" rule the Projects rows use.
+ * No boxes: structure is type size and brightness alone.
+ */
+.skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.skill-line {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  column-gap: var(--space-4);
+  row-gap: var(--space-3);
+}
+
+.skill-line__index {
+  padding-top: 0.6em;
+  color: var(--text-3);
+  transition: color var(--dur-base) var(--ease-expo);
+}
+
+.skill-line__title {
+  font-size: var(--step-4);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+  /* Dim, but never below --text-3: an unlit title is still real text and must stay readable. */
+  color: var(--text-3);
+  transition: color var(--dur-slow) var(--ease-expo);
+}
+
+.skill-line__items {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  color: var(--text-2);
+  opacity: 0.35;
+  transform: translateY(-0.4rem);
+  transition:
+    opacity var(--dur-slow) var(--ease-expo),
+    transform var(--dur-slow) var(--ease-expo);
+}
+
+.skill-line[data-active='true'] .skill-line__index {
+  color: var(--text-1);
+}
+
+.skill-line[data-active='true'] .skill-line__title {
+  color: var(--text-1);
+}
+
+.skill-line[data-active='true'] .skill-line__items {
+  opacity: 1;
+  transform: none;
+}
+
+/* Without motion there is no "passing the centre" to watch: show every group lit. */
+@media (prefers-reduced-motion: reduce) {
+  .skill-line__title {
+    color: var(--text-1);
+  }
+
+  .skill-line__items {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Achievements: a record. Each entry is led by its year as a large outlined
+ * numeral, the title and a mono issuer stamp beside it. No rules, no boxes:
+ * the column of numerals is the structure.
+ */
+.record {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.record__entry {
+  display: grid;
+  /* The year column sizes to the widest numeral, so a year can never run under its title. */
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--space-6);
+  row-gap: var(--space-5);
+  align-items: start;
+}
+
+.record__year {
+  font-size: var(--step-4);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--text-3);
+  transition: -webkit-text-stroke-color var(--dur-hover) var(--ease-expo);
+}
+
+.record__entry:hover .record__year {
+  -webkit-text-stroke-color: var(--text-1);
+}
+
+.record__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: 0.35em;
+}
+
+.record__title {
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.record__note {
+  color: var(--text-2);
+  max-width: var(--measure);
+}
+
+/*
+ * Education: a timeline spine. A full-height rule down the left edge with
+ * entries offset from it by a short tick, instead of stacked ledger rows.
+ */
+.edu-timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--hairline-active);
+}
+
+.edu-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+.edu-entry__tick {
+  position: absolute;
+  left: calc(-1 * var(--space-6) - 1px);
+  top: 0.4em;
+  width: var(--space-4);
+  height: 1px;
+  background: var(--text-3);
+}
+
+/* Projects: large numbered rows. Index, body and arrow; the case-study overlay carries the imagery. */
+.project-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-6) var(--space-3);
+  border-bottom: 1px solid var(--hairline);
+  transition: background-color var(--dur-hover) var(--ease-expo);
+}
+
+/* The active row's underline draws along the bottom edge. */
+.project-row::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 600ms var(--ease-expo);
+}
+
+.project-row__index {
+  padding-top: 0.5rem;
+  transition: color var(--dur-hover) var(--ease-expo);
+}
+
+.project-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.project-row__title {
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-display);
+  transition: transform var(--dur-base) var(--ease-expo);
+}
+
+.project-row__problem {
+  color: var(--text-2);
+  max-width: var(--measure);
+}
+
+.project-row__problem-label {
+  margin-right: var(--space-3);
+  color: var(--text-3);
+}
+
+.project-row__meta {
+  margin-top: var(--space-2);
+  /* Level 3: context. Quieter than the problem it supports. */
+  color: var(--text-3);
+}
+
+.project-row__arrow {
+  padding-top: 0.5rem;
+  color: var(--text-3);
+  font-size: var(--step-1);
+  transition:
+    transform var(--dur-base) var(--ease-expo),
+    color var(--dur-hover) var(--ease-expo);
+}
+
+.project-row:hover,
+.project-row:focus-visible,
+.project-row[data-active='true'] {
+  background: rgb(255 255 255 / 0.025);
+}
+
+.project-row:hover .project-row__title,
+.project-row:focus-visible .project-row__title {
+  transform: translateX(0.5rem);
+}
+
+.project-row:hover .project-row__arrow,
+.project-row:focus-visible .project-row__arrow {
+  transform: translate(4px, -4px);
+  color: var(--text-1);
+}
+
+.project-row[data-active='true']::after {
+  transform: scaleX(1);
+}
+
+.project-row[data-active='true'] .project-row__index {
+  color: var(--accent);
+}
+
+/* Education: a slim ledger */
+.edu-row__institution {
+  font-size: var(--step-1);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  letter-spacing: -0.01em;
+}
+
+.edu-row__credential {
+  color: var(--text-2);
+}
+
+.edu-row__note {
+  margin-top: var(--space-2);
+  color: var(--text-3);
+  font-size: var(--step--1);
+}
+
+/* Connect */
+.contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-4) var(--space-5);
+}
+
+.cta {
+  font-size: min(var(--step-5), 9vw);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-display);
+  overflow-wrap: anywhere;
+  /* The underline is a background so it can draw in from the left on hover. */
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  background-color: transparent;
+  padding-bottom: var(--space-1);
+  /* Pulled toward the pointer by useMagnetic (Connect.tsx); eases back on leave. */
+  transform: translate(var(--mx, 0px), var(--my, 0px));
+  transition:
+    color var(--dur-hover) var(--ease-expo),
+    transform 450ms var(--ease-expo);
+}
+
+.cta:hover,
+.cta:focus-visible {
+  color: var(--accent);
+}
+
+.copy-button {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--hairline-active);
+  border-radius: var(--radius-ui);
+  color: var(--text-2);
+  transition:
+    color var(--dur-hover) var(--ease-expo),
+    border-color var(--dur-hover) var(--ease-expo),
+    transform var(--dur-hover) var(--ease-expo);
+}
+
+.copy-button:hover {
+  color: var(--text-1);
+  border-color: var(--text-3);
+}
+
+.copy-button:active {
+  transform: scale(0.96);
+}
+
+.copy-button[data-state='copied'] {
+  color: var(--text-1);
+  border-color: var(--text-2);
+}
+
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+}
+
+.text-link {
+  color: var(--text-2);
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  padding-bottom: 2px;
+  transition: color var(--dur-hover) var(--ease-expo);
+}
+
+.text-link:hover,
+.text-link:focus-visible {
+  color: var(--accent);
+}
+
+/*
+ * Touch targets. On a coarse pointer (a finger) these controls get a 44px-tall
+ * hit area. It is an invisible pseudo-element rather than bigger padding: the
+ * underline is a background at the box's bottom edge, so growing the box would
+ * push it away from the text and change the design.
+ */
+@media (pointer: coarse) {
+  .cta,
+  .copy-button,
+  .text-link {
+    position: relative;
+  }
+
+  .cta::after,
+  .copy-button::after,
+  .text-link::after {
+    content: '';
+    position: absolute;
+    inset: -0.85rem -0.5rem;
+  }
+}
+
+.footnote {
+  margin-top: var(--space-8);
+}
+
+/* Chapter index: one tick per section down the right edge; the current one is long and labelled. */
+.chapter-index {
+  position: fixed;
+  top: 50%;
+  right: max(var(--space-4), env(safe-area-inset-right));
+  z-index: var(--z-nav);
+  transform: translateY(-50%);
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-slow) var(--ease-expo),
+    visibility 0s linear var(--dur-slow);
+}
+
+.chapter-index[data-visible='true'] {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.chapter-index ol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chapter-index__link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  /* A 44px-tall target around a 1px tick. */
+  min-height: 2.75rem;
+  padding-inline: var(--space-2);
+}
+
+.chapter-index__tick {
+  width: 0.75rem;
+  height: 1px;
+  background: var(--text-4);
+  transition:
+    width var(--dur-base) var(--ease-expo),
+    background-color var(--dur-hover) var(--ease-expo);
+}
+
+/* The name shows only on hover or focus, on its own ink, so it never sits unreadably over the content. */
+.chapter-index__label {
+  padding: 0.2em 0.5em;
+  background: var(--ink-0);
+  border-radius: var(--radius-1);
+  opacity: 0;
+  transform: translateX(6px);
+  transition:
+    opacity var(--dur-base) var(--ease-expo),
+    transform var(--dur-base) var(--ease-expo);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.chapter-index__link:hover .chapter-index__tick,
+.chapter-index__link:focus-visible .chapter-index__tick {
+  width: 1.25rem;
+  background: var(--text-2);
+}
+
+.chapter-index__link:hover .chapter-index__label,
+.chapter-index__link:focus-visible .chapter-index__label {
+  opacity: 1;
+  transform: none;
+}
+
+.chapter-index__link[aria-current='location'] .chapter-index__tick {
+  width: 2rem;
+  background: var(--text-1);
+}
+
+/* Narrow: rows stack, and the side index gives way to plain scrolling. */
+@media (max-width: 640px) {
+  .skill-line {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
+  .record__entry {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .edu-entry {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .edu-entry__tick {
+    display: none;
+  }
+
+  .project-row {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
+  .project-row__arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .chapter-index {
+    display: none;
+  }
+}
+
+/*
+ * Sections settle into place as they scroll in, and each chapter's hairline
+ * draws itself. Progressive enhancement: only where scroll-driven animation
+ * exists, and never for reduced motion, so nothing is ever left invisible by
+ * an unsupported browser.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .chapter .label,
+    .section-title,
+    .skill-line,
+    .record__entry,
+    .project-row,
+    .edu-entry,
+    .intro__meta,
+    .contact-row,
+    .link-row {
+      animation: settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+
+    .chapter__rule {
+      transform-origin: left center;
+      animation: rule-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

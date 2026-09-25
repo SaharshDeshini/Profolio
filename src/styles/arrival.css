@@ -1,0 +1,151 @@
+/*
+ * Arrival screen. Black, one hairline of progress, a percent readout. No
+ * accent colour here: cyan is withheld until the laptop lid opens.
+ */
+html.is-arriving {
+  overflow: hidden;
+}
+
+.arrival {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-preloader);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  background: var(--ink-0);
+  color: var(--text-1);
+  /* The veil layer of the opening (REVEAL_WINDOWS.veil in scroll/reveal.ts):
+     a slow lift, not a cut, so the room is found rather than switched to. */
+  transition:
+    opacity 1600ms cubic-bezier(0.45, 0, 0.2, 1),
+    visibility 0s linear 1600ms;
+}
+
+/* Programmatic focus target on mount (see Arrival.tsx) — it's a container,
+   not a control, so it takes focus without a visible ring. */
+.arrival:focus {
+  outline: none;
+}
+
+/* Each piece resolves on its own, staggered beat, rather than the whole
+   screen appearing as one flat block. The 550ms head start is a deliberate
+   held black beat: the visitor's first frame has nothing on it at all,
+   before the loader resolves. */
+@keyframes arrival-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.arrival__loader {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  animation: arrival-item-enter 700ms var(--ease-out) 550ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrival__loader {
+    animation-delay: 0ms;
+  }
+}
+
+.arrival[data-state='leaving'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.arrival__track {
+  position: relative;
+  width: 12rem;
+  max-width: 60vw;
+  height: 1px;
+  background: var(--hairline-active);
+  overflow: hidden;
+}
+
+.arrival__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--white);
+  transform-origin: left center;
+  transform: scaleX(var(--p, 0));
+  /* No transition: Arrival.tsx eases the value itself every frame, and a CSS
+     transition on top would lag it into the same stepped look it replaces. */
+}
+
+/* The focusing line and the lens reading share one spot; when focus lands
+   (data-focused, set by Arrival.tsx) one fades out as the other fades in. */
+.arrival__readout {
+  display: grid;
+  justify-items: center;
+  margin: 0;
+  color: var(--text-2);
+  white-space: pre;
+}
+
+.arrival__count,
+.arrival__lens {
+  grid-area: 1 / 1;
+  transition: opacity 500ms var(--ease-out);
+}
+
+.arrival__lens {
+  opacity: 0;
+}
+
+.arrival[data-focused='true'] .arrival__count {
+  opacity: 0;
+}
+
+.arrival[data-focused='true'] .arrival__lens {
+  opacity: 1;
+}
+
+/* Invisible until keyboard focus lands on it: pointer/default visitors read
+   the bar as the whole story, while Tab or a screen reader still finds
+   the bypass immediately. Reusing the .sr-only clip pattern keeps it in the
+   accessibility tree and tab order the entire time. */
+.arrival__skip {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  color: var(--text-2);
+  transition: color var(--dur-hover) var(--ease-expo);
+}
+
+.arrival__skip:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: var(--space-2) 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  /* Cyan is withheld until the lid opens: the arrival focus ring is white. */
+  outline-color: var(--text-2);
+}
+
+.arrival__skip:hover {
+  color: var(--text-1);
+}
+
+.arrival__skip:active {
+  transform: scale(0.98);
+}

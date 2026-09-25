@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+coverage
+*.local
+
+# Editor & OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Claude & Scratch files
+.claude
+scratch-*.mjs
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Vite & Temporary
+.vite
+.tmp
+
+# Test results & reports
+test-results
+playwright-report
+blob-report
+playwright/.cache

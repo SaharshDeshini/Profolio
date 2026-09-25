@@ -1,0 +1,91 @@
+/*
+ * Design system utilities. Small, single-purpose classes that every section and
+ * the arrival screen share, so the site reads as one authored piece instead of
+ * five separately styled blocks.
+ */
+
+/* Balanced headings and tidy paragraph endings (no orphans on short copy). */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+/* Metadata voice: tiny, mono, uppercase. Numbers, dates, chapter labels. */
+.label {
+  margin: 0;
+  font: 500 var(--step--2) / 1.2 var(--font-mono);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* One display line per screen. Never body copy. */
+.display-line {
+  margin: 0;
+  font-size: var(--step-display);
+  font-weight: 500;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+/* A physical key, for keyboard hints. */
+.kbd {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  border: 1px solid var(--hairline-active);
+  border-radius: var(--radius-1);
+  font: 500 0.95em / 1.2 var(--font-mono);
+  letter-spacing: 0;
+  color: var(--text-2);
+}
+
+/* Hairline rule. `.rule--draw` draws itself in once, left to right. */
+.rule {
+  display: block;
+  height: 1px;
+  background: var(--hairline);
+  transform-origin: left center;
+}
+
+@keyframes rule-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.rule--draw {
+  animation: rule-draw var(--dur-cinematic) var(--ease-expo) both;
+}
+
+/*
+ * Skip link: first stop in the tab order, visible only when focused. It sits
+ * outside <main> so it stays reachable while the page is inert.
+ */
+.skip-link {
+  position: fixed;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: calc(var(--z-preloader) + 1);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--hairline-active);
+  border-radius: var(--radius-ui);
+  background: var(--ink-2);
+  color: var(--text-1);
+  font: 500 var(--step--1) / 1.2 var(--font-mono);
+  transform: translateY(-200%);
+  transition: transform var(--dur-hover) var(--ease-expo);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}

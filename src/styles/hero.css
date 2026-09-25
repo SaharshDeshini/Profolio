@@ -1,0 +1,195 @@
+/*
+ * Act 1 DOM layer. Fixed over the canvas, under the content column. Its layout
+ * mirrors the arrival screen (same padding, same gaps, same type) so the name
+ * does not move when the veil lifts. Colour: white only. Cyan is withheld until
+ * the laptop lid opens.
+ */
+.hero {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-content) - 1);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: max(var(--gutter), env(safe-area-inset-top)) max(var(--gutter), env(safe-area-inset-right))
+    max(var(--gutter), env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Held at zero opacity through arrival so it cannot pop in ahead of the
+   scene. After that, useHeroFrame.ts fades each piece in on the text layer of
+   the opening (scroll/reveal.ts), last, once the model, the spotlight and the
+   dust are already there. */
+html.is-arriving .hero {
+  opacity: 0;
+}
+
+.hero__top,
+.hero__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.hero__readout {
+  color: var(--text-2);
+  white-space: pre;
+}
+
+.hero__bottom {
+  align-self: end;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.hero__name {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.28em;
+  transform-origin: left bottom;
+  will-change: transform, opacity;
+}
+
+.hero__cue {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  color: var(--text-2);
+}
+
+/* The one looping animation on the page: a tick sliding down a hairline. */
+.hero__cue-line {
+  position: relative;
+  width: 1px;
+  height: 1.75rem;
+  background: var(--hairline-active);
+  overflow: hidden;
+}
+
+.hero__cue-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--white);
+  transform: translateY(-100%);
+  animation: cue-drop 2200ms var(--ease-in-out) infinite;
+}
+
+@keyframes cue-drop {
+  0% {
+    transform: translateY(-100%);
+  }
+  60%,
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+/* Captions: the story, one beat at a time. Just the line of narration, held at the side of the frame the figure is not in. */
+.hero__caption {
+  position: absolute;
+  top: 42%;
+  width: min(22rem, 36vw);
+  display: grid;
+  gap: var(--space-3);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.hero__caption--left {
+  left: max(var(--gutter), env(safe-area-inset-left));
+}
+
+.hero__caption--right {
+  right: max(var(--gutter), env(safe-area-inset-right));
+}
+
+.hero__caption-text {
+  margin: 0;
+  font-size: var(--step-2);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  /* A soft dark halo, not a box: if a line ever crosses a lit edge of the
+     room it still reads, without putting a card on the frame. */
+  text-shadow:
+    0 0 18px rgb(0 0 0 / 0.85),
+    0 0 42px rgb(0 0 0 / 0.6);
+  color: var(--text-1);
+}
+
+/* A phone has no side band to hold a caption beside the rig: it runs wider,
+   in the lower third under the subject (which the portrait camera raises),
+   one size down so a line still fits in two or three rows. */
+@media (max-width: 640px) {
+  .hero__caption {
+    top: auto;
+    bottom: 18%;
+    width: auto;
+    max-width: 22rem;
+  }
+
+  .hero__caption--left {
+    right: max(var(--gutter), env(safe-area-inset-right));
+  }
+
+  .hero__caption--right {
+    left: max(var(--gutter), env(safe-area-inset-left));
+  }
+
+  .hero__caption-text {
+    font-size: var(--step-1);
+  }
+}
+
+/* Viewfinder corners: four small ticks, as if looking through a camera. */
+.hero__frame {
+  position: absolute;
+  inset: max(var(--space-5), env(safe-area-inset-top)) max(var(--space-5), env(safe-area-inset-right))
+    max(var(--space-5), env(safe-area-inset-bottom)) max(var(--space-5), env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+.hero__corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 0 solid var(--hairline-active);
+}
+
+.hero__corner--tl {
+  top: 0;
+  left: 0;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.hero__corner--tr {
+  top: 0;
+  right: 0;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+
+.hero__corner--bl {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+
+.hero__corner--br {
+  right: 0;
+  bottom: 0;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__cue-line::after {
+    animation: none;
+    transform: translateY(0);
+  }
+}
