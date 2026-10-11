@@ -14,9 +14,10 @@ const toPercent = (value: number): number => Math.round(value * 100)
 
 /**
  * Once focus lands, how long the final reading holds before the screen lifts:
- * long enough for the crossfade from "FOCUSING" to the lens reading to be seen.
+ * the swap from "FOCUSING" to the lens reading (260ms out, then 440ms in, see
+ * arrival.css) plus a beat with the settled reading alone on screen.
  */
-const FOCUS_HOLD_MS = 700
+const FOCUS_HOLD_MS = 1000
 
 type ArrivalVars = CSSProperties & Record<'--p', number>
 

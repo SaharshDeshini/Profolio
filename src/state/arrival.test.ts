@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   CODE_LOADED,
   DISPLAY_CEILING,
+  MAX_FRAME_MS,
   DISPLAY_LEAD,
   MAX_VISIBLE_MS,
   MIN_VISIBLE_MS,
@@ -138,6 +139,18 @@ describe('displayedProgress', () => {
     }
     expect(shown).toBe(1)
     expect(frames * FRAME).toBeLessThan(1000)
+  })
+
+  it('never leaps on a long frame: one stalled frame moves it no further than a short one could', () => {
+    const afterStall = displayedProgress(0.3, 1, false, 3000)
+    expect(afterStall).toBe(displayedProgress(0.3, 1, false, MAX_FRAME_MS))
+    expect(afterStall - 0.3).toBeLessThan(0.05)
+  })
+
+  it('eases into the end once ready instead of snapping there', () => {
+    const next = displayedProgress(DISPLAY_CEILING, 1, true, 3000)
+    expect(next).toBeLessThan(1)
+    expect(next).toBeGreaterThan(DISPLAY_CEILING)
   })
 
   it('treats a negative frame time as no time', () => {

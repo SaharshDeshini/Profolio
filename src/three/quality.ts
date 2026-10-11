@@ -13,7 +13,18 @@ export interface QualityEnvironment {
   readonly cores: number
   /** `navigator.deviceMemory` in GB; null when unsupported (Safari, Firefox). */
   readonly memoryGb: number | null
+  /** The WebGL renderer string (`UNMASKED_RENDERER_WEBGL`); null when the browser will not say. */
+  readonly gpu: string | null
 }
+
+/**
+ * Graphics built into the CPU (Intel UHD/Iris, phone chips) and software
+ * renderers. Core count and memory say nothing about these: a 12-core laptop
+ * with Iris Xe measured ~20 fps on `high`, so the GPU caps the tier on its own.
+ */
+const INTEGRATED_GPU = /\b(intel|mali|adreno|powervr|swiftshader|llvmpipe|microsoft basic render)\b/i
+
+export const isIntegratedGpu = (gpu: string | null): boolean => gpu !== null && INTEGRATED_GPU.test(gpu)
 
 export interface QualityFeatures {
   readonly postFx: boolean
@@ -49,7 +60,9 @@ const FEATURES: Record<QualityTier, QualityFeatures> = {
     bloom: true,
     depthOfField: false,
     grain: true,
-    multisampling: 2,
+    // No MSAA on the composer's buffer: measured ~5ms a frame on integrated
+    // graphics, which is what this tier mostly runs on.
+    multisampling: 0,
     screenTextureWidth: 1536,
     screenSamples: 4,
     setDressing: true,
@@ -74,12 +87,12 @@ export const featuresFor = (tier: QualityTier): QualityFeatures => FEATURES[tier
  * Unknown values are treated as capable, so browsers that hide them are not
  * penalised; the runtime monitor steps them down if they turn out slow.
  */
-export function resolveTier({ mode, cores, memoryGb }: QualityEnvironment): QualityTier {
+export function resolveTier({ mode, cores, memoryGb, gpu }: QualityEnvironment): QualityTier {
   if (mode === 'mobile' || mode === 'reduced') return 'low'
   const knownCores = cores > 0 ? cores : 8
   const knownMemory = memoryGb ?? 8
   if (knownCores < 4 || knownMemory < 4) return 'low'
-  if (knownCores >= 8 && knownMemory >= 8) return 'high'
+  if (knownCores >= 8 && knownMemory >= 8 && !isIntegratedGpu(gpu)) return 'high'
   return 'mid'
 }
 

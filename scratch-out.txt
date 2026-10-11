@@ -1,0 +1,32 @@
+LONG [[201,65,"window"],[269,434,"window"],[1201,139,"window"],[1450,61,"window"],[1806,227,"window"],[2034,452,"window"],[4720,65,"window"]]
+GL>8ms [["useProgram",1497,9],["getProgramInfoLog",2044,25],["getProgramInfoLog",2110,23],["getProgramInfoLog",2139,39],["getProgramInfoLog",2198,58],["getProgramInfoLog",2260,18],["getProgramInfoLog",2280,9],["getProgramInfoLog",2307,16],["getProgramInfoLog",2324,13],["getProgramInfoLog",2339,19],["getProgramInfoLog",2359,14],["getProgramInfoLog",2375,10],["getProgramInfoLog",2387,27],["getProgramInfoLog",2415,12],["getProgramInfoLog",2428,53]]
+613 581  visible 0 0
+702 90  visible 0 0
+1336 133  visible 0 0
+1502 67  visible 0 0
+1819 17  visible 15 0
+2486 667  visible 28 1
+3553 34 true visible 28 1
+4719 1133 true visible 28 1
+4769 50 true leaving 28 1
+5402 633 true leaving 28 1
+5619 67 true leaving 28 1
+5686 66 true leaving 28 1
+5852 67 true leaving 28 1
+5919 67 true leaving 28 1
+6002 83 true leaving 28 1
+6086 83 true leaving 28 1
+6152 67 true leaving 28 1
+6269 67 true leaving 28 1
+6336 67 true leaving 28 1
+6452 67 true leaving 28 1
+6569 67  gone 28 1
+6719 100  gone 28 1
+7036 67  gone 28 1
+7352 66  gone 28 1
+7419 67  gone 28 1
+7536 67  gone 28 1
+7602 67  gone 28 1
+7719 67  gone 28 1
+7919 67  gone 28 1
+8069 67  gone 28 1

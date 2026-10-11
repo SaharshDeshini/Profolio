@@ -3,6 +3,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import type { Group } from 'three'
 import { REDUCED_MOTION_QUERY } from '../layout.ts'
 import { progress } from '../scroll/progress.ts'
+import type { SectionId } from '../scroll/sections.ts'
 import { getActiveSection } from '../state/activeSection.ts'
 import { cameraFrameFor } from './cameraPath.ts'
 import {
@@ -29,6 +30,16 @@ const SECTION_SETTLE_TIME = 0.6
  */
 const FULLY_DOCKED = 0.999
 
+/** Below this the damped pose is close enough to its target to call it arrived, the same convention ProblemWall uses. */
+const DOCK_SETTLE_EPSILON = 1e-4
+
+interface DockTarget {
+  readonly section: SectionId | 'intro'
+  readonly width: number
+  readonly height: number
+  readonly transform: DockTransform
+}
+
 /**
  * The one group that docks: desk, chair, laptop, person and the lights that
  * ride with them. It is moved and scaled every frame from the story scalar, so
@@ -47,6 +58,8 @@ export function DockRig({ children }: DockRigProps) {
   const group = useRef<Group>(null)
   const rendered = useRef<DockTransform>(NO_DOCK)
   const reducedMotion = useRef(false)
+  const target = useRef<DockTarget | null>(null)
+  const settled = useRef(false)
 
   useEffect(() => {
     reducedMotion.current = window.matchMedia(REDUCED_MOTION_QUERY).matches
@@ -59,25 +72,55 @@ export function DockRig({ children }: DockRigProps) {
     // Solved on resize, not per frame: the plan is remembered for the last size.
     const plan = dockPlanFor(size.width, size.height)
     const base = sampleDock(progress.smooth, plan)
+    const isSectionDocked = plan !== NO_DOCK && dockAmountAt(progress.smooth) >= FULLY_DOCKED
 
-    let next = base
-    if (plan !== NO_DOCK && dockAmountAt(progress.smooth) >= FULLY_DOCKED) {
-      const pose = SECTION_DOCK_POSE[getActiveSection() ?? 'intro']
-      const target = solveDock(cameraFrameFor(size.width, size.height).aspect, pose)
-      const smoothTime = reducedMotion.current ? 0 : SECTION_SETTLE_TIME
-      next = {
-        position: [
-          dampToward(rendered.current.position[0], target.position[0], delta, smoothTime),
-          dampToward(rendered.current.position[1], target.position[1], delta, smoothTime),
-          dampToward(rendered.current.position[2], target.position[2], delta, smoothTime),
-        ],
-        scale: dampToward(rendered.current.scale, target.scale, delta, smoothTime),
-      }
+    if (!isSectionDocked) {
+      settled.current = false
+      target.current = null
+      rendered.current = base
+      rig.position.set(base.position[0], base.position[1], base.position[2])
+      rig.scale.setScalar(base.scale)
+      return
+    }
+
+    const section = getActiveSection() ?? 'intro'
+    const cached = target.current
+    const current =
+      cached && cached.section === section && cached.width === size.width && cached.height === size.height
+        ? cached
+        : (() => {
+            const pose = SECTION_DOCK_POSE[section]
+            const solved = solveDock(cameraFrameFor(size.width, size.height).aspect, pose)
+            const built = { section, width: size.width, height: size.height, transform: solved }
+            target.current = built
+            settled.current = false
+            return built
+          })()
+
+    // The target hasn't moved and the rig already reached it: nothing left to do this frame.
+    if (settled.current) return
+
+    const { transform: to } = current
+    const smoothTime = reducedMotion.current ? 0 : SECTION_SETTLE_TIME
+    const next: DockTransform = {
+      position: [
+        dampToward(rendered.current.position[0], to.position[0], delta, smoothTime),
+        dampToward(rendered.current.position[1], to.position[1], delta, smoothTime),
+        dampToward(rendered.current.position[2], to.position[2], delta, smoothTime),
+      ],
+      scale: dampToward(rendered.current.scale, to.scale, delta, smoothTime),
     }
 
     rendered.current = next
     rig.position.set(next.position[0], next.position[1], next.position[2])
     rig.scale.setScalar(next.scale)
+
+    const diff =
+      Math.abs(next.position[0] - to.position[0]) +
+      Math.abs(next.position[1] - to.position[1]) +
+      Math.abs(next.position[2] - to.position[2]) +
+      Math.abs(next.scale - to.scale)
+    if (diff < DOCK_SETTLE_EPSILON) settled.current = true
   })
 
   return (

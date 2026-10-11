@@ -80,7 +80,10 @@ html.is-arriving {
 }
 
 /* The focusing line and the lens reading share one spot; when focus lands
-   (data-focused, set by Arrival.tsx) one fades out as the other fades in. */
+   (data-focused, set by Arrival.tsx) the focusing line fades out first and
+   only then does the lens reading fade in. Overlapping them put two strings of
+   different lengths on top of each other mid-fade, which read as garbled
+   characters ("07.0", ".38mm 7.0"). FOCUS_HOLD_MS in Arrival.tsx covers both. */
 .arrival__readout {
   display: grid;
   justify-items: center;
@@ -92,7 +95,6 @@ html.is-arriving {
 .arrival__count,
 .arrival__lens {
   grid-area: 1 / 1;
-  transition: opacity 500ms var(--ease-out);
 }
 
 .arrival__lens {
@@ -101,10 +103,12 @@ html.is-arriving {
 
 .arrival[data-focused='true'] .arrival__count {
   opacity: 0;
+  transition: opacity 260ms var(--ease-out);
 }
 
 .arrival[data-focused='true'] .arrival__lens {
   opacity: 1;
+  transition: opacity 440ms var(--ease-out) 260ms;
 }
 
 /* Invisible until keyboard focus lands on it: pointer/default visitors read

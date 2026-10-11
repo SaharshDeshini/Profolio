@@ -103,13 +103,19 @@ export const DISPLAY_LEAD = 0.35
 export const DISPLAY_CEILING = 0.92
 /** Creep time constant: the bar closes ~63% of the gap to its target every this many ms, so it slows as it nears it. */
 export const CREEP_TAU_MS = 900
-/** Once ready, the last stretch fills quickly. */
-export const FINISH_TAU_MS = 110
+/** Once ready, the last stretch fills briskly but visibly eases into the end (~0.7s from the ceiling). */
+export const FINISH_TAU_MS = 180
+/**
+ * The most time one frame may advance the bar. A long frame (the scene
+ * uploading to the GPU, a tab coming back from the background) would otherwise
+ * be read as one huge step, and the bar would leap instead of glide.
+ */
+export const MAX_FRAME_MS = 50
 /** Close enough to full to call it full, so the finish does not crawl forever. */
 const FULL = 0.998
 
 const approach = (from: number, to: number, dtMs: number, tauMs: number): number =>
-  from + (to - from) * (1 - Math.exp(-Math.max(0, dtMs) / tauMs))
+  from + (to - from) * (1 - Math.exp(-Math.min(MAX_FRAME_MS, Math.max(0, dtMs)) / tauMs))
 
 /**
  * The value the loading bar shows, stepped forward by one frame of `dtMs`.

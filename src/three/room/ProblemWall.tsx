@@ -94,6 +94,10 @@ export function ProblemWall() {
   // Initial buffers only: after mount they are written through the geometry ref.
   const [initialPositions] = useState(() => new Float32Array(threadIndex.length * 2 * 3))
   const [initialColors] = useState(() => new Float32Array(threadIndex.length * 2 * 4))
+  // Reused every frame instead of allocating a fresh array/tuple per note: one
+  // note's world position lives at [index*3, index*3+1, index*3+2].
+  const [notePositions] = useState(() => new Float32Array(problemNotes.length * 3))
+  const [swayScratch] = useState<[number, number]>(() => [0, 0])
 
   const wall = useRef<Group>(null)
   const groups = useRef<(Group | null)[]>([])
@@ -119,8 +123,12 @@ export function ProblemWall() {
     const targetPresence = dockAmountAt(progress.smooth) * revealNow('particles')
     const presence = dampToward(shownPresence.current, targetPresence, delta, snap ? 0 : PRESENCE_FADE_TIME)
     shownPresence.current = presence
-    root.visible = presence > 0.001
-    if (!root.visible) return
+    // While the arrival screen still hides the room, the wall is drawn with
+    // everything at zero opacity: that compiles its shaders then, instead of
+    // freezing the scroll for ~150ms the moment Act 2 begins.
+    const warming = revealNow('model') === 0
+    root.visible = warming || presence > 0.001
+    if (presence <= 0.001) return
     const active = getActiveSection()
     furthest.current = furthestOf(furthest.current, active)
     let changed = placedFor.current !== camera
@@ -153,7 +161,6 @@ export function ProblemWall() {
     changed ||= !snap
 
     const noteTime = snap ? 0 : NOTE_SETTLE_TIME
-    const positions: (readonly [number, number, number])[] = []
     problemNotes.forEach((note, index) => {
       const previousLevel = levels.current[index] ?? 0
       const previousLift = emphasis.current[index] ?? 0
@@ -170,12 +177,12 @@ export function ProblemWall() {
 
       const placement = placeNote(note.at, note.finale, note.depth, next, lift)
       const sway = snap ? 0 : DRIFT
-      const swayed: readonly [number, number] = [
-        placement.at[0] + Math.sin(time * 0.21 + index * 1.7) * sway,
-        placement.at[1] + Math.cos(time * 0.17 + index * 2.3) * sway,
-      ]
-      const position = wallPoint(camera, swayed, placement.depth)
-      positions.push(position)
+      swayScratch[0] = placement.at[0] + Math.sin(time * 0.21 + index * 1.7) * sway
+      swayScratch[1] = placement.at[1] + Math.cos(time * 0.17 + index * 2.3) * sway
+      const position = wallPoint(camera, swayScratch, placement.depth)
+      notePositions[index * 3] = position[0]
+      notePositions[index * 3 + 1] = position[1]
+      notePositions[index * 3 + 2] = position[2]
       const group = groups.current[index]
       if (group && changed) {
         group.position.set(position[0], position[1], position[2])
@@ -199,15 +206,19 @@ export function ProblemWall() {
       const drawn = dampToward(previous, threadReach(levelA, levelB), delta, threadTime)
       changed ||= Math.abs(drawn - previous) > SETTLED
       reach.current[index] = drawn
-      const from = positions[a]
-      const to = positions[b]
-      if (!positionAttribute || !colorAttribute || !from || !to) return
-      positionAttribute.setXYZ(index * 2, from[0], from[1], from[2])
+      if (!positionAttribute || !colorAttribute) return
+      const fromX = notePositions[a * 3] ?? 0
+      const fromY = notePositions[a * 3 + 1] ?? 0
+      const fromZ = notePositions[a * 3 + 2] ?? 0
+      const toX = notePositions[b * 3] ?? 0
+      const toY = notePositions[b * 3 + 1] ?? 0
+      const toZ = notePositions[b * 3 + 2] ?? 0
+      positionAttribute.setXYZ(index * 2, fromX, fromY, fromZ)
       positionAttribute.setXYZ(
         index * 2 + 1,
-        from[0] + (to[0] - from[0]) * drawn,
-        from[1] + (to[1] - from[1]) * drawn,
-        from[2] + (to[2] - from[2]) * drawn,
+        fromX + (toX - fromX) * drawn,
+        fromY + (toY - fromY) * drawn,
+        fromZ + (toZ - fromZ) * drawn,
       )
       const alpha = Math.min(levelA, levelB) * THREAD_SHARE
       colorAttribute.setXYZW(index * 2, THREAD_COLOR.r, THREAD_COLOR.g, THREAD_COLOR.b, alpha)

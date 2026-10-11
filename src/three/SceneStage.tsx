@@ -30,6 +30,20 @@ const PINNED_TIER: QualityTier | null = (() => {
   return TIERS.find((tier) => tier === requested) ?? null
 })()
 
+/**
+ * The GPU's name, read from a throwaway context that is released straight
+ * away. Null when the browser hides it (Firefox and Safari may), which
+ * `resolveTier` treats as capable.
+ */
+function detectGpu(): string | null {
+  const gl = document.createElement('canvas').getContext('webgl2')
+  if (!gl) return null
+  const info = gl.getExtension('WEBGL_debug_renderer_info')
+  const gpu = info ? (gl.getParameter(info.UNMASKED_RENDERER_WEBGL) as string) : null
+  gl.getExtension('WEBGL_lose_context')?.loseContext()
+  return gpu
+}
+
 interface SceneStageProps {
   readonly mode: StoryMode
 }
@@ -50,6 +64,7 @@ export default function SceneStage({ mode }: SceneStageProps) {
       mode,
       cores: navigator.hardwareConcurrency || 0,
       memoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null,
+      gpu: detectGpu(),
     }),
   )
   // Captured once: what the visit started on. See StartTierContext.

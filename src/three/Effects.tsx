@@ -9,7 +9,7 @@ import {
 } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode, type DepthOfFieldEffect } from 'postprocessing'
 import { useMemo, useRef } from 'react'
-import { Vector3 } from 'three'
+import { Object3D, Vector3 } from 'three'
 import { progress } from '../scroll/progress.ts'
 import { dockAmountAt } from './dock.ts'
 import { DESK, FOCUS_TARGET_NAME, LAPTOP } from './room/dimensions.ts'
@@ -46,10 +46,16 @@ export function Effects() {
   const features = useQuality()
   const target = useMemo(() => new Vector3(0, DESK.topY + LAPTOP.baseHeight, LAPTOP.z), [])
   const depthOfField = useRef<DepthOfFieldEffect>(null)
+  // The focus target group is mounted once and never removed, so the scene-graph
+  // walk to find it only needs to happen once, not every frame.
+  const focusObject = useRef<Object3D | null>(null)
 
   // Follows the laptop through the dock, which moves and scales the whole rig.
   useFrame(({ scene }) => {
-    scene.getObjectByName(FOCUS_TARGET_NAME)?.getWorldPosition(target)
+    if (!focusObject.current || focusObject.current.parent === null) {
+      focusObject.current = scene.getObjectByName(FOCUS_TARGET_NAME) ?? null
+    }
+    focusObject.current?.getWorldPosition(target)
     const effect = depthOfField.current
     if (effect) {
       const docked = dockAmountAt(progress.smooth)

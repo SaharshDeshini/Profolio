@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { featuresFor, resolveTier, stepDown } from './quality.ts'
+import { featuresFor, isIntegratedGpu, resolveTier, stepDown } from './quality.ts'
 
-const desktop = { mode: 'cinematic', cores: 12, memoryGb: 16 } as const
+const desktop = { mode: 'cinematic', cores: 12, memoryGb: 16, gpu: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060)' } as const
+const IRIS_XE = 'ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x000046A6) Direct3D11 vs_5_0 ps_5_0, D3D11)'
 
 describe('resolveTier', () => {
   it('gives a capable desktop the full finish', () => {
@@ -24,7 +25,22 @@ describe('resolveTier', () => {
   })
 
   it('treats values a browser will not reveal as capable', () => {
-    expect(resolveTier({ mode: 'cinematic', cores: 0, memoryGb: null })).toBe('high')
+    expect(resolveTier({ mode: 'cinematic', cores: 0, memoryGb: null, gpu: null })).toBe('high')
+  })
+
+  it('caps integrated graphics at mid however many cores the machine has', () => {
+    expect(resolveTier({ ...desktop, gpu: IRIS_XE })).toBe('mid')
+    expect(resolveTier({ ...desktop, gpu: 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device))' })).toBe('mid')
+  })
+})
+
+describe('isIntegratedGpu', () => {
+  it('recognises built-in and software renderers, not discrete cards or an unknown GPU', () => {
+    expect(isIntegratedGpu(IRIS_XE)).toBe(true)
+    expect(isIntegratedGpu('Mali-G78')).toBe(true)
+    expect(isIntegratedGpu(desktop.gpu)).toBe(false)
+    expect(isIntegratedGpu('ANGLE (AMD, AMD Radeon RX 6700 XT)')).toBe(false)
+    expect(isIntegratedGpu(null)).toBe(false)
   })
 })
 
